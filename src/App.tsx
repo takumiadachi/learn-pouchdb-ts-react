@@ -3,9 +3,25 @@ import "./App.css";
 import PouchDB from "pouchdb";
 
 (async () => {
-  let db = new PouchDB("test");
+  let localDB = new PouchDB("testsync");
   try {
-    const info = await db.info();
+    let remoteDB = new PouchDB("http://localhost:5984/testsync");
+    const createRemoteDB = await remoteDB.info(); // Api call to make the remote db
+    console.log(createRemoteDB);
+    // localDB
+    //   .sync(remoteDB)
+    //   .on("complete", () => {
+    //     console.log("sync successful!");
+    //   })
+    //   .on("error", error => {
+    //     console.log("sync failed");
+    //   });
+  } catch (error) {
+    console.log(error);
+  }
+
+  try {
+    const info = await localDB.info();
     console.log(info);
   } catch (error) {
     console.log(error);
@@ -18,14 +34,14 @@ import PouchDB from "pouchdb";
       age: 23,
       designation: "Designer"
     };
-    const put = await db.put(doc);
+    const put = await localDB.put(doc);
     console.log(put);
   } catch (error) {
     console.log(error);
   }
 
   try {
-    const get = await db.get("002");
+    const get = await localDB.get("002");
     console.log(get);
   } catch (error) {
     console.log(error);
