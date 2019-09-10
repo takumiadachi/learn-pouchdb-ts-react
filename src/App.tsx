@@ -3,6 +3,7 @@ import "./App.css";
 import PouchDB from "pouchdb";
 import generate from "nanoid/generate";
 const dictionaryNumbers = require("nanoid-dictionary/numbers");
+var faker = require("faker");
 
 (async () => {
   try {
@@ -102,11 +103,18 @@ const Headline = () => {
   return <h1>{greeting}</h1>;
 };
 
-const AddDummyData = () => {
-  const test = () => {
-    console.log("test");
-  };
-  const html = <button onClick={test}>Test</button>;
+async function addDummyData(db: string) {
+  addUser(new PouchDB(db), genuuid(), faker.name.findName());
+}
+
+interface DummyDataProps {
+  db: string;
+}
+
+const AddDummyDataComponent = (props: DummyDataProps) => {
+  const handleClick = async (event: any) => addDummyData(props.db);
+
+  const html = <button onClick={handleClick}>Add Dummy Users</button>;
   return html;
 };
 
@@ -114,7 +122,7 @@ const App: React.FC = () => {
   return (
     <div className="App">
       <Headline />
-      <AddDummyData />
+      <AddDummyDataComponent db="testsync" />
     </div>
   );
 };
