@@ -2,10 +2,11 @@ import React, { useState } from "react";
 import "./App.css";
 import PouchDB from "pouchdb";
 import generate from "nanoid/generate";
-const dictionaryNumbers = require("nanoid-dictionary/numbers");
-var faker = require("faker");
+const dictionaryNumbers = require("nanoid-dictionary/numbers"); // Can create ids with only numbers
+var faker = require("faker"); // Provides fake data
 
 (async () => {
+  // Delete LOCAL test db and start from scratch
   try {
     let destroyLocalDB = await new PouchDB("testsync");
     const exists = await destroyLocalDB.info();
@@ -16,6 +17,7 @@ var faker = require("faker");
     console.log(error);
   }
 
+  // Delete REMOTE test db and start from scratch
   try {
     let destroyRemoteDB = await new PouchDB("http://localhost:5984/testsync");
     const exists = await destroyRemoteDB.info();
@@ -26,6 +28,7 @@ var faker = require("faker");
     console.log(error);
   }
 
+  // Create new LOCAL and REMOTE dbs then keep syncing them
   let localDB = await new PouchDB("testsync");
   try {
     let remoteDB = await new PouchDB("http://localhost:5984/testsync");
@@ -41,6 +44,7 @@ var faker = require("faker");
     console.log(error);
   }
 
+  // Test if local db is created
   try {
     const info = await localDB.info();
     console.log(info);
@@ -48,6 +52,7 @@ var faker = require("faker");
     console.log(error);
   }
 
+  // Add a user
   try {
     let doc = {
       _id: genuuid(),
@@ -58,17 +63,27 @@ var faker = require("faker");
     console.log(error);
   }
 
-  // try {
-  //   await getUser(localDB, "002");
-  // } catch (error) {
-  //   console.log(error);
-  // }
-
+  // Add more users
   await addUser(localDB, genuuid(), "Trisha");
   await addUser(localDB, genuuid(), "Edward");
   await addUser(localDB, genuuid(), "Alphonse");
-  const got = await getUser(localDB, "005");
-  console.log(got);
+  // const got = await getUser(localDB, "005");
+  // console.log(got);
+
+  // Create view
+  let ddoc: PouchDB.Core.PutDocument<{}> = {
+    _id: "_design/view",
+    views: {
+      all: {
+        // @ts-ignore
+        map: `function(doc) {
+          emit(doc.name);
+        }`
+      }
+    }
+  };
+  const addDesignDoc = await localDB.put(ddoc);
+  console.log(addDesignDoc);
 })();
 
 async function addUser(db: PouchDB.Database<{}>, id: string, name: string) {
