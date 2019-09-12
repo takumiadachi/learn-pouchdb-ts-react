@@ -85,7 +85,7 @@ var faker = require("faker"); // Provides fake data
       }
     };
     const addDesignDoc = await localDB.put(doc);
-    console.log(addDesignDoc);
+    return addDesignDoc;
   } catch (error) {
     console.log(error);
   }
@@ -100,6 +100,8 @@ var faker = require("faker"); // Provides fake data
   //   console.log(error);
   // }
 })();
+
+// interface user extends
 
 async function addUser(db: PouchDB.Database<{}>, id: string, name: string) {
   try {
@@ -123,10 +125,24 @@ async function getUser(db: PouchDB.Database<{}>, id: string) {
   }
 }
 
+interface User {
+  _id: string;
+  _rev?: string;
+  name: string;
+}
+
 async function getUsers(db: PouchDB.Database<{}>) {
   try {
-    const data = await db.query("view/all", { include_docs: true });
-    return data.rows;
+    const data = await db.query<User>("view/all");
+    const users = data.rows.map(user => {
+      const item: User = {
+        _id: user.id,
+        name: user.key
+      };
+      return item;
+    });
+    console.log(users);
+    return users;
   } catch (error) {
     return null;
   }
@@ -143,7 +159,8 @@ const Headline = () => {
 };
 
 async function addDummyData(db: string) {
-  addUser(new PouchDB(db), genuuid(), faker.name.findName());
+  const connection = new PouchDB(db);
+  addUser(connection, genuuid(), faker.name.findName());
 }
 
 interface DummyDataProps {
@@ -158,7 +175,7 @@ const AddDummyDataComponent = (props: DummyDataProps) => {
 };
 
 const ShowDummyDataComponent = (props: DummyDataProps) => {
-  const [dat, setData] = useState([]);
+  const [data, setData] = useState<(User[]) | undefined>();
 
   // Similar to componentDidMount & componentDidUpdate
   // Use async code here
@@ -167,15 +184,28 @@ const ShowDummyDataComponent = (props: DummyDataProps) => {
       try {
         let db = await new PouchDB(props.dbName);
         const users = await getUsers(db);
-        setData(users);
+        if (users) {
+          setData(users);
+        }
       } catch (error) {
         console.log(error);
       }
     })();
   }, []);
-  const html = <div>In Construction</div>;
-  const html = data;
-  return html;
+  if (data) {
+    const listItems = data.map(item => {
+      return <li>{item.name}</li>;
+    });
+    const html = (
+      <div>
+        <ul>{listItems ? listItems : null}</ul>
+      </div>
+    );
+
+    return html;
+  } else {
+    return <div> Under Construction </div>;
+  }
 };
 
 const App: React.FC = () => {
