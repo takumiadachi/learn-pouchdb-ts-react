@@ -40,6 +40,8 @@
     ]
   },
   "devDependencies": {
-    "@types/faker": "^4.1.5"
+    "@types/faker": "^4.1.5",
+    "@types/react-redux": "^7.1.2",
+    "redux": "^4.0.4"
   }
 }
